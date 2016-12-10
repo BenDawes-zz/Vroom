@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableHighlight, TextInput} from 'react-nati
 import { connect } from 'react-redux'
 import globalStore from './globalStore'
 import TeamNames from './teamNames'
+import * as utils from './utils'
 
 class Score extends Component {
   constructor(props) {
@@ -150,7 +151,7 @@ class ScoreControls extends Component {
       submitFunction: (dialogue) => {
           globalStore.dispatch({
           type: 'EDIT_GOAL',
-          timeInMilliseconds: dialogue.milliseconds(dialogue.state.timeString),
+          timeInMilliseconds: utils.timeStringToMilliseconds(dialogue.state.timeString),
           teamIndex: dialogue.props.options.teamIndex,
           goalIndex: dialogue.props.options.goalIndex,
           scorerNumber: dialogue.state.scorerString
@@ -168,8 +169,8 @@ class ScoreControls extends Component {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Goal Time:</Text>
-                <TextInput style={styles.input} placeholder={dialogue.stringify(goalTime)}
-                 onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={dialogue.stringify(goalTime)}/>
+                <TextInput style={styles.input} placeholder={utils.stringify(goalTime)}
+                 onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(goalTime)}/>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Player Number:</Text><TextInput style={styles.input} placeholder='N/A'
@@ -207,6 +208,14 @@ class ScoreControls extends Component {
           teamIndex: team,
           goalIndex: goalIndex
         })
+      },
+      validateFunction: (dialogue) => {
+        result = true
+        timeLength = dialogue.state.timeString.length
+        if(dialogue.state.timeString[timeLength - 3] !== ':' || timeLength > 5 || utils.timeStringToMilliseconds(dialogue.state.timeString) == -1) {
+          result = false
+        }
+        return result
       }
     })
   }
@@ -243,7 +252,7 @@ class ScoreControls extends Component {
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Goal Time:</Text>
-                <Text style={styles.value}>{dialogue.stringify(goalTime)}</Text>
+                <Text style={styles.value}>{utils.stringify(goalTime)}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Player Number:</Text><Text style={styles.label}>{scorerNumber}</Text>
