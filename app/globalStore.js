@@ -1,4 +1,3 @@
-
 import { combineReducers, createStore } from 'redux'
 import ScoreReducer from './scoreReducer'
 import StyleReducer from './styleReducer'

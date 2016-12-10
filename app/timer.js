@@ -2,6 +2,7 @@
 import React, { Component } from 'react';
 import { View, Text, TouchableHighlight, StyleSheet } from 'react-native';
 import globalStore from './globalStore'
+import * as utils from './utils'
 
 class Controls extends Component {
 
@@ -47,58 +48,68 @@ export default class Timer extends Component {
                   paused: false}
     this.handlePauseGo = this.handlePauseGo.bind(this)
     this.handleReset = this.handleReset.bind(this)
-    this.seconds = this.seconds.bind(this)
-    this.minutes = this.minutes.bind(this)
-    this.padToTwo = this.padToTwo.bind(this)
+    globalStore.subscribe(() => {
+      if(globalStore.getState().timerState.forcedStop && this.state.running) {
+        this.setState( {
+          running: false,
+          paused: true
+        })
+        clearInterval(this.interval)
+        globalStore.dispatch({
+          type: 'TIMER_CLEAR_STOP'
+        })
+      }
+    })
   }
 
   handlePauseGo() {
+    updateFunction = () => {
+      // Update internal state
+      newTime = new Date() - this.state.startTime
+      this.setState( {
+        timeInMilliseconds: newTime,
+        running: true,
+        paused: false
+      } )
+      // Update the global store
+      globalStore.dispatch({
+        type: 'SET_TIME',
+        timeInMilliseconds: newTime,
+        startTime: this.state.startTime,
+      })
+    }
+    //Pause/Go button pressed
     if(!this.state.running) {
+      //We were stopped
       if(!this.state.paused) {
+        // This is the first time the timer is going after a reset. Set it to running
         this.setState( {
           timeInMilliseconds: 0, 
           startTime: new Date(),
           running: true,
           paused: false
         } )
+        // Update the store with the timer state
         globalStore.dispatch({
           type: 'SET_TIME',
           timeInMilliseconds: 0,
           startTime: this.state.startTime
         })
-        this.interval = setInterval(() => {
-          this.setState( {
-            timeInMilliseconds: new Date() - this.state.startTime,
-            running: true,
-            paused: false
-          } )
-          globalStore.dispatch({
-            type: 'SET_TIME',
-            timeInMilliseconds: new Date() - this.state.startTime,
-            startTime: this.state.startTime,
-          })
-        })
+        // Regularly update the timer
+        this.interval = setInterval(updateFunction,100)
       } else {
+        // We just pressed go having paused it. Update the start time to x milliseconds ago, where x is the current timer value
         this.setState( {
           startTime: new Date() - this.state.timeInMilliseconds,
           running: true,
           paused: false
         } )
-        this.interval = setInterval(() => {
-          this.setState( {
-            timeInMilliseconds: new Date() - this.state.startTime,
-            running: true,
-            paused: false
-          } )
-          globalStore.dispatch({
-            type: 'SET_TIME',
-            timeInMilliseconds: new Date() - this.state.startTime,
-            startTime: this.state.startTime,
-          })
-        })
+        // Start counting from now
+        this.interval = setInterval(updateFunction,100)
       }
       return;
     } else {
+      // we're pausing it. Pause it, then clear the interval
       this.setState( {
         running: false,
         paused: true
@@ -111,31 +122,20 @@ export default class Timer extends Component {
     if(this.state.running) {
       return;
     }
+    // Clear the time and update interval
     this.setState( {
       timeInMilliseconds: 0, 
       startTime: new Date(),
-      running: false
+      running: false,
+      paused: false
     } )
     clearInterval(this.interval)
   }
 
-  padToTwo(s) {
-    return (s+'').length == 1 ? '0' + s : s + ''
-  }
-
-  seconds(timeInMilliseconds) {
-    let val = (Math.floor(timeInMilliseconds/1000)) % 60
-    return val ? this.padToTwo(val)+'' : '00'
-  }
-
-  minutes(timeInMilliseconds) {
-    let val = ((Math.floor(timeInMilliseconds/1000)) - this.seconds(timeInMilliseconds))/60
-    return val ? this.padToTwo(val) : '00'
-  }
   render() {
     return (
       <View style={styles.view}>
-        <Text style={styles.timer}>{this.minutes(this.state.timeInMilliseconds) + ":" + this.seconds(this.state.timeInMilliseconds)}</Text>
+        <Text style={styles.timer}>{utils.stringify(this.state.timeInMilliseconds)}</Text>
         <Controls 
          handlePauseGo = {this.handlePauseGo}
          handleReset = {this.handleReset}

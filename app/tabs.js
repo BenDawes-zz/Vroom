@@ -21,8 +21,10 @@ class Tabs extends Component {
     return () => {
       oldIndex = this.state.selectedIndex
       if(oldIndex == index) {
+        // If you click on the same tab, do nothing
         return null;
       } else {
+        // Otherwise, move the margin to x*width, where x is the tab index
         this.setState({selectedIndex: index})
         Animated.spring(
           this.state.tabsMargin,
@@ -40,17 +42,17 @@ class Tabs extends Component {
     return Dimensions.get('window') ? Dimensions.get('window').width : 0
   }
 
+  windowWidthStyle() {
+    return {
+      width: this.getWindowWidth()
+    }
+  }
+
   panesStyle() {
     return {
       marginLeft: this.state.tabsMargin,
       flexDirection: 'row',
       flex: 10
-    }
-  }
-
-  windowWidthStyle() {
-    return {
-      width: this.getWindowWidth()
     }
   }
 

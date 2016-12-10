@@ -10,14 +10,14 @@ export const padToTwo = (s) => {
 	
 export const seconds = (timeInMilliseconds) => {
 	let val = (Math.floor(timeInMilliseconds/1000)) % 60
-	return val ? this.padToTwo(val)+'' : '00'
+	return val ? padToTwo(val)+'' : '00'
 }
 
 export const minutes = (timeInMilliseconds) => {
-	let val = ((Math.floor(timeInMilliseconds/1000)) - this.seconds(timeInMilliseconds))/60
-	return val ? this.padToTwo(val) : '00'
+	let val = ((Math.floor(timeInMilliseconds/1000)) - seconds(timeInMilliseconds))/60
+	return val ? padToTwo(val) : '00'
 }
  
 export const stringify = (timeInMilliseconds) => {
-	return this.minutes(timeInMilliseconds) + ':' + this.seconds(timeInMilliseconds)
+	return minutes(timeInMilliseconds) + ':' + seconds(timeInMilliseconds)
 }
