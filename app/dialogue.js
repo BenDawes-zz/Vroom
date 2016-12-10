@@ -123,7 +123,10 @@ const mapStateToProps = (state) => {
     } : state.dialogueState.contentFunction,
     cancelFunction: state.dialogueState.cancelFunction == null ? (dialogue) => {
     	return
-    } : state.dialogueState.cancelFunction
+    } : state.dialogueState.cancelFunction,
+    validateFunction: state.dialogueState.validateFunction == null ? (dialogue) => {
+    	return
+    } : state.dialogueState.validateFunction
   }
 }
 

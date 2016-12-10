@@ -12,7 +12,8 @@ const initialDialogueState = {
       <View/>
       )
   },
-  cancelFunction: () => { return }
+  cancelFunction: () => { return },
+  validateFunction: () => { return true }
 }
 
 export default DialogueReducer = (state = initialDialogueState, action = {}) => {
@@ -21,8 +22,18 @@ export default DialogueReducer = (state = initialDialogueState, action = {}) => 
       newState = JSON.parse(JSON.stringify(state))
       newState.dialogueState = action.dialogueState
       newState.options = action.options
-      newState.submitFunction = action.submitFunction
-      newState.contentFunction = action.contentFunction
+      if(action.submitFunction !== null) {
+        newState.submitFunction = action.submitFunction
+      }
+      if(action.contentFunction !== null) {
+        newState.contentFunction = action.contentFunction
+      }
+      if(action.cancelFunction !== null) {
+        newState.cancelFunction = action.cancelFunction
+      }
+      if(action.validateFunction !== null) {
+        newState.validateFunction = action.validateFunction
+      }
       return newState
     }
     case 'CLOSE_DIALOGUE': {

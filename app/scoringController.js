@@ -27,12 +27,8 @@ class Score extends Component {
 class ScoreControls extends Component {
   constructor(props) {
     super(props)
-    this.changeScore = this.props.changeFn.bind(this)
-    this.setScore = this.props.setFn.bind(this)
-    this.raiseAddGoalDialogue = this.props.raiseAddGoalDialogueFn.bind(this)
-    this.raiseRemoveGoalDialogue = this.props.raiseRemoveGoalDialogueFn.bind(this)
-    this.raiseAddSnitchDialogue = this.props.raiseAddSnitchDialogueFn.bind(this)
     this.enterEditScoresheetMode = this.props.enterEditScoresheetModeFn.bind(this)
+    this.raiseDialogue = this.props.raiseDialogue.bind(this)
   }
 
   render() {
@@ -42,7 +38,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.raiseAddGoalDialogue(0)}
+            onPress={() => this.raiseDialogue('ADD_GOAL',0)}
             style={[styles.button, styles.addGoalButton]} >
             <Text>
             Add Goal
@@ -51,7 +47,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.raiseRemoveGoalDialogue(0)}
+            onPress={() => this.raiseDialogue('REMOVE_GOAL',0)}
             style={[styles.button, styles.removeGoalButton]} >
             <Text>
             Remove Last Goal
@@ -60,7 +56,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.raiseAddSnitchDialogue(0)}
+            onPress={() => this.raiseDialogue('ADD_SNITCH',0)}
             style={[styles.button, styles.addSnitchButton]} >
             <Text>
             Add Snitch
@@ -80,7 +76,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.raiseAddGoalDialogue(1)}
+            onPress={() => this.raiseDialogue('ADD_GOAL',1)}
             style={[styles.button, styles.addGoalButton]} >
             <Text>
             Add Goal
@@ -89,7 +85,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.raiseRemoveGoalDialogue(1)}
+            onPress={() => this.raiseDialogue('REMOVE_GOAL',1)}
             style={[styles.button, styles.removeGoalButton]} >
             <Text>
             Remove Last Goal
@@ -98,7 +94,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.raiseAddSnitchDialogue(1)}
+            onPress={() => this.raiseDialogue('ADD_SNITCH',1)}
             style={[styles.button, styles.addSnitchButton]} >
             <Text>
             Add Snitch
@@ -122,38 +118,78 @@ class ScoreControls extends Component {
  class ScoringController extends Component {
   constructor(props) {
     super(props)
-    this.changeScore = this.changeScore.bind(this)
-    this.setScore = this.setScore.bind(this)
-    this.raiseAddGoalDialogue = this.raiseAddGoalDialogue.bind(this)
-    this.raiseRemoveGoalDialogue = this.raiseRemoveGoalDialogue.bind(this)
-    this.raiseAddSnitchDialogue = this.raiseAddSnitchDialogue.bind(this)
     this.enterEditScoresheetMode = this.enterEditScoresheetMode.bind(this)
+    this.raiseDialogue = this.raiseDialogue.bind(this)
   }
 
-  raiseAddGoalDialogue(team) {
+  raiseDialogue(type, team) {
 
-    // First things first, capture the goal right away
+    defaultContentWrapper = (title, rows, dialogue) => {
+      rowsContent = []
+      var i = 0
+      rows.forEach((row) => {
+        keyString = ''+i
+        i = i + 1
+        rowsContent.push((
+          <View key={keyString} >
+            {row}
+          </View>
+        ))
+      })
+      // The custom content inside the dialogue
+      return (
+        <View style={styles.dialogueWrapper} key='dialogue'>
+          <View style={styles.dialogueTop}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{title}</Text>
+            </View>
+            {rowsContent}
+          </View>
+          <View style={styles.submitRow}>
+            <View style={styles.buttonWrapper}>
+              <TouchableHighlight
+              underlayColor='gray'
+              onPress={() => dialogue.submit()}
+              style={[styles.button, styles.submitButton]} >
+                <Text>
+                Submit
+                </Text>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.buttonWrapper}>
+              <TouchableHighlight
+              underlayColor='gray'
+              onPress={() => dialogue.cancel()}
+              style={[styles.button, styles.cancelButton]} >
+                <Text>
+                Cancel
+                </Text>
+              </TouchableHighlight>
+            </View>
+          </View>
+        </View>
+        )
+      }
 
-    var goalTime = globalStore.getState().timerState.timeInMilliseconds;
-    var goalIndex = globalStore.getState().scoreState.goals[team].length;
-    globalStore.dispatch({
-      type: 'ADD_GOAL',
-      timeInMilliseconds: goalTime,
-      teamIndex: team,
-      scorerNumber: null
-    })
 
-    // Next, prompt the user for additional info. Open the add goal dialogue:
-    globalStore.dispatch({
-      type: 'OPEN_DIALOGUE',
-      dialogueState: 'ADD_GOAL',
-      options: {
-        goalTime: goalTime,
-        teamIndex: team,
-        scorerNumber: null,
-        goalIndex: goalIndex
-      },
-      submitFunction: (dialogue) => {
+    var submitFunction;
+    var cancelFunction;
+    var contentFunction;
+    var validateFunction = () => {return true};
+
+    switch(type) {
+      case 'ADD_GOAL': {
+        var eventTime = globalStore.getState().timerState.timeInMilliseconds;
+        var goalIndex = globalStore.getState().scoreState.goals[team].length;
+
+        // Immediately store it
+        globalStore.dispatch({
+          type: 'ADD_GOAL',
+          timeInMilliseconds: eventTime,
+          teamIndex: team,
+          scorerNumber: null
+        })
+        submitFunction = (dialogue) => {
         // On submit, modify the goal we stored at button-press with the new info
           globalStore.dispatch({
           type: 'EDIT_GOAL',
@@ -162,248 +198,157 @@ class ScoreControls extends Component {
           goalIndex: goalIndex,
           scorerNumber: dialogue.state.scorerString
           })
-        // Then close the dialogue
-          globalStore.dispatch({
-            type: 'CLOSE_DIALOGUE'
-          })
-        },
-      contentFunction: (dialogue) => {
-        // The custom content inside the dialogue
-        return (
-          <View style={styles.dialogueWrapper} key='dialogue'>
-            <View style={styles.dialogueTop}>
-              <View style={styles.titleRow}>
-                <Text style={styles.title}>Adding Goal To {globalStore.getState().teamState.names[team]}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Goal Time:</Text>
-                <TextInput style={styles.input} placeholder={utils.stringify(goalTime)}
-                 onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(goalTime)}/>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Player Number:</Text><TextInput style={styles.input} placeholder='N/A'
-                 onChangeText={(text) => dialogue.setState({scorerString: text})}/>
-              </View>
-            </View>
-            <View style={styles.submitRow}>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                underlayColor='gray'
-                onPress={() => dialogue.submit()}
-                style={[styles.button, styles.submitButton]} >
-                  <Text>
-                  Submit
-                  </Text>
-                </TouchableHighlight>
-              </View>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                underlayColor='gray'
-                onPress={() => dialogue.cancel()}
-                style={[styles.button, styles.cancelButton]} >
-                  <Text>
-                  Cancel
-                  </Text>
-                </TouchableHighlight>
-              </View>
-            </View>
-          </View>
-          )
-      },
-      // If the user cancels the dialogue, they've accidentally pressed add goal, so remove it
-      cancelFunction: (dialogue) => {
-        globalStore.dispatch({
-          type: 'REMOVE_GOAL',
-          teamIndex: team,
-          goalIndex: goalIndex
-        })
-      },
-      // To check the user input, we just check the time is in a nice format (##:##)
-      validateFunction: (dialogue) => {
-        result = true
-        nums = dialogue.state.timeString.split(':')
-        if(nums.length !== 2 || nums[0].length > 2 || nums[0].length == 0 || nums[1].length != 2 || utils.timeStringToMilliseconds(dialogue.state.timeString) < 0) {
-          result = false
         }
-        return result
+        // If the user cancels the dialogue, they've accidentally pressed add goal, so remove it
+        cancelFunction = (dialogue) => {
+          globalStore.dispatch({
+            type: 'REMOVE_GOAL',
+            teamIndex: team,
+            goalIndex: goalIndex
+          })
+        }
+        // To check the user input, we just check the time is in a nice format (##:##)
+        validateFunction = (dialogue) => {
+          var result = true
+          var nums = dialogue.state.timeString.split(':')
+          if(nums.length !== 2 || nums[0].length > 2 || nums[0].length == 0 || nums[1].length != 2 || utils.timeStringToMilliseconds(dialogue.state.timeString) < 0) {
+            result = false
+          }
+          return result
+        }
+        contentFunction = (dialogue) => {
+          var rows = [
+              (
+                <View style={styles.row}>
+                <Text style={styles.label}>Goal Time:</Text>
+                <TextInput style={styles.input} placeholder={utils.stringify(eventTime)}
+                  onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(eventTime)}/>
+                </View>
+              ),
+              (
+                <View style={styles.row}>
+                <Text style={styles.label}>Player Number:</Text>
+                <TextInput style={styles.input} placeholder='N/A'
+                   onChangeText={(text) => dialogue.setState({scorerString: text})}/>
+                </View>
+              )
+            ]
+          var title = (<Text>Adding Goal To {globalStore.getState().teamState.names[team]}</Text>)
+          return defaultContentWrapper(title, rows, dialogue)
+        }
+        break;
       }
-    })
-  }
+      case 'REMOVE_GOAL': {
+        var goalIndex = globalStore.getState().scoreState.goals[team].length-1
+        if(goalIndex == -1) {
+          return
+        }
+        // Get the info to populate the dialogue
+        var eventTime = globalStore.getState().scoreState.goals[team][goalIndex].timeInMilliseconds
+        var scorerNumber = globalStore.getState().scoreState.goals[team][goalIndex].scorerNumber
+        var teamName = globalStore.getState().teamState.names[team]
 
-  raiseRemoveGoalDialogue(team) {
-    // We remove the most recently added goal (chronologically by user input, not necessarily by goal time)
 
-    // Get the goal index. If the team hasn't scored yet, return
-    var goalIndex = globalStore.getState().scoreState.goals[team].length-1
-    if(goalIndex == -1) {
-      return
+        // For when the scorer wasn't input
+        if(scorerNumber === null) {
+          scorerNumber = 'N/A'
+        }
+
+        contentFunction = (dialogue) => {
+          var rows = [
+            (
+            <View style={styles.row}>
+              <Text style={styles.label}>Goal Time:</Text>
+              <Text style={styles.value}>{utils.stringify(eventTime)}</Text>
+            </View>
+            ),
+            (
+            <View style={styles.row}>
+              <Text style={styles.label}>Player Number:</Text><Text style={styles.label}>{scorerNumber}</Text>
+            </View>
+            )
+          ]
+          var title = (<Text>REMOVING Goal From {teamName}</Text>)
+          return defaultContentWrapper(title, rows, dialogue)
+        }
+
+        submitFunction = (dialogue) => {
+          // On submit, remove that goal
+          globalStore.dispatch({
+            type: 'REMOVE_GOAL',
+            teamIndex: team,
+            goalIndex: goalIndex
+          })
+        }
+        break;
+      }
+      case 'ADD_SNITCH': {
+        var eventTime = globalStore.getState().timerState.timeInMilliseconds;
+
+        submitFunction = (dialogue) => {
+          // On submit, add the snitch
+            globalStore.dispatch({
+            type: 'ADD_SNITCH',
+            timeInMilliseconds: utils.timeStringToMilliseconds(dialogue.state.timeString),
+            teamIndex: team,
+            catcherNumber: dialogue.state.catcherString
+            })
+          // Stop the timer
+            globalStore.dispatch({
+              type: 'TIMER_FORCE_STOP'
+            })
+          }
+         // To check the user input, we just check the time is in a nice format (##:##)
+        validateFunction: (dialogue) => {
+          result = true
+          nums = dialogue.state.timeString.split(':')
+          if(nums.length !== 2 || nums[0].length > 2 || nums[0].length == 0 || nums[1].length != 2 || utils.timeStringToMilliseconds(dialogue.state.timeString) < 0) {
+            result = false
+          }
+          return result
+        }
+
+        contentFunction = (dialogue) => {
+          var rows = [
+            (
+            <View style={styles.row}>
+              <Text style={styles.label}>Catch Time:</Text>
+              <TextInput style={styles.input} placeholder={utils.stringify(eventTime)}
+               onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(eventTime)}/>
+            </View>
+            ),
+            (
+            <View style={styles.row}>
+              <Text style={styles.label}>Player Number:</Text><TextInput style={styles.input} placeholder='N/A'
+               onChangeText={(text) => dialogue.setState({catcherString: text})}/>
+            </View>
+            )
+          ]
+          var title = (<Text>Adding Snitch Catch To {globalStore.getState().teamState.names[team]}</Text>)
+          return defaultContentWrapper(title, rows, dialogue)
+        }
+
+        break;
+      }
+      default: {
+        return;
+      }
     }
-
-    // Get the info to populate the dialogue
-    var goalTime = globalStore.getState().scoreState.goals[team][goalIndex].timeInMilliseconds
-    var scorerNumber = globalStore.getState().scoreState.goals[team][goalIndex].scorerNumber
-    var teamName = globalStore.getState().teamState.names[team]
-
-    // For when the scorer wasn't input
-    if(scorerNumber === null) {
-      scorerNumber = 'N/A'
-    }
-
-    // Now we raise the dialogue
+    
     globalStore.dispatch({
       type: 'OPEN_DIALOGUE',
-      dialogueState: 'REMOVE_GOAL',
+      dialogueState: type,
       options: {
       },
-      submitFunction: (dialogue) => {
-        // On submit, remove that goal
-        globalStore.dispatch({
-          type: 'REMOVE_GOAL',
-          teamIndex: team,
-          goalIndex: goalIndex
-        })
-      },
-      contentFunction: (dialogue) => {
-        // The content for the dialogue
-        return (
-          <View style={styles.dialogueWrapper} key='dialogue'>
-            <View style={styles.dialogueTop}>
-              <View style={styles.titleRow}>
-                <Text style={styles.title}>REMOVING Goal From {teamName}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Goal Time:</Text>
-                <Text style={styles.value}>{utils.stringify(goalTime)}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Player Number:</Text><Text style={styles.label}>{scorerNumber}</Text>
-              </View>
-            </View>
-            <View style={styles.submitRow}>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                underlayColor='gray'
-                onPress={() => dialogue.submit()}
-                style={[styles.button, styles.submitButton]} >
-                  <Text>
-                  Remove
-                  </Text>
-                </TouchableHighlight>
-              </View>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                underlayColor='gray'
-                onPress={() => dialogue.cancel()}
-                style={[styles.button, styles.cancelButton]} >
-                  <Text>
-                  Cancel
-                  </Text>
-                </TouchableHighlight>
-              </View>
-            </View>
-          </View>
-          )
-      }
-    })
-  }
-
-  raiseAddSnitchDialogue(team) {
-    catchTime = globalStore.getState().timerState.timeInMilliseconds;
-    globalStore.dispatch({
-    // Prompt the user for additional info. Open the add goal dialogue:
-      type: 'OPEN_DIALOGUE',
-      dialogueState: 'ADD_SNITCH',
-      options: {
-        teamIndex: team
-      },
-      submitFunction: (dialogue) => {
-        // On submit, add the snitch
-          globalStore.dispatch({
-          type: 'ADD_SNITCH',
-          timeInMilliseconds: utils.timeStringToMilliseconds(dialogue.state.timeString),
-          teamIndex: team,
-          catcherNumber: dialogue.state.catcherString
-          })
-        // Stop the timer
-          globalStore.dispatch({
-            type: 'TIMER_FORCE_STOP'
-          })
-        // Then close the dialogue
-          globalStore.dispatch({
-            type: 'CLOSE_DIALOGUE'
-          })
-        },
-      contentFunction: (dialogue) => {
-        // The custom content inside the dialogue
-        return (
-          <View style={styles.dialogueWrapper} key='dialogue'>
-            <View style={styles.dialogueTop}>
-              <View style={styles.titleRow}>
-                <Text style={styles.title}>Adding Snitch Catch To {globalStore.getState().teamState.names[team]}</Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Catch Time:</Text>
-                <TextInput style={styles.input} placeholder={utils.stringify(catchTime)}
-                 onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(catchTime)}/>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Player Number:</Text><TextInput style={styles.input} placeholder='N/A'
-                 onChangeText={(text) => dialogue.setState({catcherString: text})}/>
-              </View>
-            </View>
-            <View style={styles.submitRow}>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                underlayColor='gray'
-                onPress={() => dialogue.submit()}
-                style={[styles.button, styles.submitButton]} >
-                  <Text>
-                  Submit
-                  </Text>
-                </TouchableHighlight>
-              </View>
-              <View style={styles.buttonWrapper}>
-                <TouchableHighlight
-                underlayColor='gray'
-                onPress={() => dialogue.cancel()}
-                style={[styles.button, styles.cancelButton]} >
-                  <Text>
-                  Cancel
-                  </Text>
-                </TouchableHighlight>
-              </View>
-            </View>
-          </View>
-          )
-      },
-      // If the user cancels the dialogue, they've accidentally pressed add goal, so remove it
-      cancelFunction: (dialogue) => {
-        globalStore.dispatch({
-          type: 'REMOVE_GOAL',
-          teamIndex: team,
-          goalIndex: goalIndex
-        })
-      },
-      // To check the user input, we just check the time is in a nice format (##:##)
-      validateFunction: (dialogue) => {
-        result = true
-        nums = dialogue.state.timeString.split(':')
-        if(nums.length !== 2 || nums[0].length > 2 || nums[0].length == 0 || nums[1].length != 2 || utils.timeStringToMilliseconds(dialogue.state.timeString) < 0) {
-          result = false
-        }
-        return result
-      }
-  })  
+      submitFunction: submitFunction,
+      cancelFunction: cancelFunction,
+      validateFunction: validateFunction,
+      contentFunction: contentFunction
+    })  
   }
 
   enterEditScoresheetMode(team) {
 
-  }
-
-  changeScore(team,diff) {
-  }
-
-  setScore(team,value) {
   }
 
   render() {
@@ -414,10 +359,8 @@ class ScoreControls extends Component {
         <ScoreControls style = {styles.scoreControlsContainer} 
         changeFn = {this.changeScore} 
         setFn = {this.setScore}
-        raiseAddGoalDialogueFn = {this.raiseAddGoalDialogue}
-        raiseRemoveGoalDialogueFn = {this.raiseRemoveGoalDialogue}
-        raiseAddSnitchDialogueFn = {this.raiseAddSnitchDialogue}
         enterEditScoresheetModeFn = {this.enterEditScoresheetMode}
+        raiseDialogue = {this.raiseDialogue}
         disabled = {this.props.disabled}
         />
       </View>
