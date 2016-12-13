@@ -19,7 +19,9 @@ class ScoreSheetEditor extends Component {
       team: props.team, 
       snitches: JSON.parse(JSON.stringify(props.snitches)), 
       goals: JSON.parse(JSON.stringify(props.goals)), 
-      goalValidities: props.goals.map((goal) => {return {timeValid: true, scorerValid: true}})
+      goalValidities: props.goals.map((goal) => {return {timeValid: true, scorerValid: true}}),
+      snitchValidities: props.snitches.map((snitch) => {return {timeValid: true, catcherValid: true}})
+
     }
   }
 
@@ -27,6 +29,9 @@ class ScoreSheetEditor extends Component {
     var result = true;
     this.state.goalValidities.forEach((validities) => {
       result &= validities.timeValid && validities.scorerValid
+    })
+    this.state.snitchValidities.forEach((validities) => {
+      result &= validities.timeValid && validities.catcherValid
     })
     return result
   }
@@ -77,8 +82,33 @@ class ScoreSheetEditor extends Component {
       this.setState({goalValidities: tempGoalValidities})
     }
   }
+
+  updateSnitchCatcher(index, newCatcher) {
+    // Can do some checks that it is an acceptable catcher
+
+    var curSnitches = this.state.snitches
+    curSnitches[index].catcherNumber = newCatcher
+    this.setState({snitches: curSnitches})
+  }
+
+  updateSnitchTime(index, newTime) {
+    if(utils.isValidTimeString(newTime)) {
+      var curSnitches = this.state.snitches
+      curSnitches[index].timeInMilliseconds = utils.timeStringToMilliseconds(newTime)
+
+      var tempSnitchValidities = this.state.snitchValidities
+      tempSnitchValidities[index].timeValid = true
+      this.setState({snitches: curSnitches, snitchValidities: tempSnitchValidities})
+    } else {
+      var tempSnitchValidities = this.state.snitchValidities
+      tempSnitchValidities[index].timeValid = false
+      this.setState({snitchValidities: tempSnitchValidities})
+    }
+  }
+  
+
   render() {
-    rowsContent = this.props.goals.map((goal,i) => {
+    goalsContent = this.props.goals.map((goal,i) => {
       keyString = ''+i
       eventTime = goal.timeInMilliseconds
       scorerNumber = goal.scorerNumber
@@ -97,6 +127,25 @@ class ScoreSheetEditor extends Component {
         </View>
       )
     })
+    catchesContent = this.props.snitches.map((snitch,i) => {
+      keyString = ''+i
+      eventTime = snitch.timeInMilliseconds
+      catcherNumber = snitch.catcherNumber
+      if(catcherNumber == null || catcherNumber == '') {
+        catcherNumber = 'N/A'
+      }
+      timeValid = this.state.snitchValidities[i].timeValid
+      catcherValid = this.state.snitchValidities[i].catcherValid
+      return  (
+        <View style={styles.row} key={keyString}>
+          <Text/>
+          <TextInput style={[styles.input, timeValid ? {} : styles.invalid]} placeholder={utils.stringify(eventTime)}
+            onChangeText={(text) => this.updateSnitchTime(i, text)} defaultValue={utils.stringify(eventTime)}/>
+          <TextInput style={[styles.input, catcherValid ? {} : styles.invalid]} placeholder={catcherNumber}
+            onChangeText={(text) => this.updateSnitchCatcher(i, text)} defaultValue={catcherNumber}/>
+        </View>
+      )
+    })
                
     return (
       <View style = {styles.scoreSheetWrapper}>
@@ -108,7 +157,12 @@ class ScoreSheetEditor extends Component {
             <Text style={styles.header}>Goal Time</Text>
             <Text style={styles.header}>Goal Scorer</Text>
           </View>
-          {rowsContent}
+          {goalsContent}
+          <View style={styles.row}>
+            <Text style={styles.header}>Catch Time</Text>
+            <Text style={styles.header}>Catcher</Text>
+          </View>
+          {catchesContent}
         </View>
         <View style={styles.submitRow}>
           <View style={styles.buttonWrapper}>
