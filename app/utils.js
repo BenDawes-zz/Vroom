@@ -21,3 +21,12 @@ export const minutes = (timeInMilliseconds) => {
 export const stringify = (timeInMilliseconds) => {
 	return minutes(timeInMilliseconds) + ':' + seconds(timeInMilliseconds)
 }
+
+export const isValidTimeString = (timeString) => {
+  var result = true
+  var nums = timeString.split(':')
+  if(nums.length !== 2 || nums[0].length > 2 || nums[0].length == 0 || nums[1].length != 2 || timeStringToMilliseconds(timeString) < 0) {
+    result = false
+  }
+  return result
+}

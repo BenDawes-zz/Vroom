@@ -80,18 +80,14 @@ class Dialogue extends Component {
 	submit() {
         if(!this.validate()) return;
 
-		this.props.submitFunction(this)
+		if(this.props.submitFunction) { this.props.submitFunction(this) }
 		globalStore.dispatch({
 			type: 'CLOSE_DIALOGUE'
 		})
 	}
 
 	cancel() {
-		switch(this.props.dialogueState) {
-			case 'ADD_GOAL':
-				
-		}
-		this.props.cancelFunction(this)
+		if(this.props.contentFunction) { this.props.cancelFunction(this) }
 		globalStore.dispatch({
 			type: 'CLOSE_DIALOGUE'
 		})

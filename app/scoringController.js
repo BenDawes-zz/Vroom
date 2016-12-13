@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableHighlight, TextInput} from 'react-nati
 import { connect } from 'react-redux'
 import globalStore from './globalStore'
 import TeamNames from './teamNames'
+import ScoreSheetEditor from './scoreSheetEditor'
 import * as utils from './utils'
 
 class Score extends Component {
@@ -65,7 +66,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.enterEditScoresheetMode(0)}
+            onPress={() => this.raiseDialogue('EDIT_SCORESHEET',0)}
             style={[styles.button, styles.editScoresheetButton]} >
             <Text>
             Edit Scoresheet
@@ -103,7 +104,7 @@ class ScoreControls extends Component {
           <TouchableHighlight
             disabled={this.props.disabled}
             underlayColor='gray'
-            onPress={() => this.enterEditScoresheetMode(1)}
+            onPress={() => this.raiseDialogue('EDIT_SCORESHEET',1)}
             style={[styles.button, styles.editScoresheetButton]} >
             <Text>
             Edit Scoresheet
@@ -209,12 +210,7 @@ class ScoreControls extends Component {
         }
         // To check the user input, we just check the time is in a nice format (##:##)
         validateFunction = (dialogue) => {
-          var result = true
-          var nums = dialogue.state.timeString.split(':')
-          if(nums.length !== 2 || nums[0].length > 2 || nums[0].length == 0 || nums[1].length != 2 || utils.timeStringToMilliseconds(dialogue.state.timeString) < 0) {
-            result = false
-          }
-          return result
+          return utils.isValidTimeString(dialogue.state.timeString)
         }
         contentFunction = (dialogue) => {
           var rows = [
@@ -264,7 +260,7 @@ class ScoreControls extends Component {
             ),
             (
             <View style={styles.row}>
-              <Text style={styles.label}>Player Number:</Text><Text style={styles.label}>{scorerNumber}</Text>
+              <Text style={styles.label}>Player Number:</Text><Text style={styles.value}>{scorerNumber}</Text>
             </View>
             )
           ]
@@ -326,6 +322,26 @@ class ScoreControls extends Component {
           ]
           var title = (<Text>Adding Snitch Catch To {globalStore.getState().teamState.names[team]}</Text>)
           return defaultContentWrapper(title, rows, dialogue)
+        }
+
+        break;
+      }
+      case 'EDIT_SCORESHEET': {
+
+        submitFunction = (dialogue) => {
+          
+          }
+         // To check the user input, we just check the time is in a nice format (##:##)
+        validateFunction: (dialogue) => {
+          return true
+        }
+
+        contentFunction = (dialogue) => {
+         return <ScoreSheetEditor 
+                  team={team} 
+                  dialogue={dialogue}
+                  goals={globalStore.getState().scoreState.goals[team]}
+                  snitches={globalStore.getState().scoreState.snitches[team]}/>
         }
 
         break;
@@ -438,17 +454,6 @@ const styles = StyleSheet.create({
   },
   buttonWrapper: {
     flex: 1,
-    alignItems: 'center'
-  },
-  button: {
-    borderWidth: 2,
-    height: 30,
-    width: 150,
-    borderRadius: 15,
-    marginLeft: 5,
-    marginRight: 5,
-    marginTop: 5,
-    justifyContent: 'center',
     alignItems: 'center'
   },
   submitButton: {

@@ -4,6 +4,18 @@ const initialScoreState = {
   snitches: [[],[]]
 }
 
+fixScoreConstraints = (state) => {
+
+  // We ensure goals and snitches are stored in chronological order
+
+  compareEventfunction = ((g1,g2) => {return g1.timeInMilliseconds - g2.timeInMilliseconds})
+  state.goals[0].sort(compareEventfunction)
+  state.goals[1].sort(compareEventfunction)
+  state.snitches[0].sort(compareEventfunction)
+  state.snitches[0].sort(compareEventfunction)
+  return state
+}
+
 export default ScoreReducer = (state = initialScoreState, action = {}) => {
   switch (action.type) {
     case 'ADD_GOAL': {
@@ -11,6 +23,7 @@ export default ScoreReducer = (state = initialScoreState, action = {}) => {
       newState = JSON.parse(JSON.stringify(state))
       newState.goals[action.teamIndex].push({timeInMilliseconds: action.timeInMilliseconds, scorerNumber: action.scorerNumber})
       newState.scores[action.teamIndex] += 10
+      newState = fixScoreConstraints(newState)
       return newState
     }
     case 'EDIT_GOAL': {
@@ -34,6 +47,7 @@ export default ScoreReducer = (state = initialScoreState, action = {}) => {
 
       // Add the newly edited goal into the state
       newState.goals[action.teamIndex][action.goalIndex] = result
+      newState = fixScoreConstraints(newState)
       return newState
 
     }
@@ -46,12 +60,14 @@ export default ScoreReducer = (state = initialScoreState, action = {}) => {
       // Cut it out, and reduce the score
       newState.goals[action.teamIndex].splice(action.goalIndex, 1)
       newState.scores[action.teamIndex] -= 10
+      newState = fixScoreConstraints(newState)
       return newState
     }
     case 'ADD_SNITCH': {
       newState =  JSON.parse(JSON.stringify(state))
       newState.snitches[action.teamIndex].push({timeInMilliseconds: action.timeInMilliseconds, scorerNumber: action.catcherNumber})
       newState.scores[action.teamIndex] += 30
+      newState = fixScoreConstraints(newState)
       return newState
     }
     case 'REMOVE_SNITCH': {
@@ -61,7 +77,15 @@ export default ScoreReducer = (state = initialScoreState, action = {}) => {
       newState =  JSON.parse(JSON.stringify(state))
       newState.snitches[action.teamIndex].splice(action.snitchIndex, 1)
       newState.scores[action.teamIndex] -= 30
+      newState = fixScoreConstraints(newState)
       return newState
+    }
+    case 'SCORESHEET_UPDATE': {
+      newState = JSON.parse(JSON.stringify(state))
+      newState.goals[action.team] = action.goals
+      newState.snitches[action.team] = action.snitches
+      newState = fixScoreConstraints(newState)
+      return newState; 
     }
     default: 
       return state
