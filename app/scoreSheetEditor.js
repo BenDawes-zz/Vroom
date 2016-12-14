@@ -108,7 +108,7 @@ class ScoreSheetEditor extends Component {
   
 
   render() {
-    goalsContent = this.props.goals.map((goal,i) => {
+    var goalsContent = this.props.goals.map((goal,i) => {
       keyString = ''+i
       eventTime = goal.timeInMilliseconds
       scorerNumber = goal.scorerNumber
@@ -127,7 +127,7 @@ class ScoreSheetEditor extends Component {
         </View>
       )
     })
-    catchesContent = this.props.snitches.map((snitch,i) => {
+    var catchesContent = this.props.snitches.map((snitch,i) => {
       keyString = ''+i
       eventTime = snitch.timeInMilliseconds
       catcherNumber = snitch.catcherNumber

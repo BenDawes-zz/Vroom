@@ -7,7 +7,7 @@ import * as utils from './utils'
 class Dialogue extends Component {
 	constructor(props) {
 		super(props)
-		this.state = {topPosition: new Animated.Value(10000), state: 'CLOSED', timeString: '', scorerString: ''}
+		this.state = {topPosition: new Animated.Value(10000), state: 'CLOSED'}
 		this.getWindowHeight = this.getWindowHeight.bind(this)
 		this.getWindowWidth = this.getWindowWidth.bind(this)
 		this.getSizeStyle = this.getSizeStyle.bind(this)
@@ -25,9 +25,10 @@ class Dialogue extends Component {
 		).start();
 
 		globalStore.subscribe(() => {
-			storeDialogueState = globalStore.getState().dialogueState.dialogueState
-			if(this.state.state == 'CLOSED' && storeDialogueState !== 'CLOSED') {
-				this.setState({state: 'OPEN', timeString: utils.stringify(this.props.options.goalTime)})
+			storeDialogueState = globalStore.getState().dialogueState
+			if(this.state.state == 'CLOSED' && storeDialogueState.dialogueState !== 'CLOSED') {
+				this.setState(storeDialogueState.defaultState)
+				this.setState({state: 'OPEN'})
 				Animated.spring(
 				  this.state.topPosition,
 				  {
@@ -35,7 +36,7 @@ class Dialogue extends Component {
 				    friction: 9
 				  }
 				).start();
-			} else if(this.state.state == 'OPEN' && storeDialogueState == 'CLOSED') {
+			} else if(this.state.state == 'OPEN' && storeDialogueState.dialogueState == 'CLOSED') {
 				this.setState({state: 'CLOSED'})
 				Animated.spring(
 				  this.state.topPosition,
@@ -108,7 +109,7 @@ class Dialogue extends Component {
 const mapStateToProps = (state) => {
   return {
     dialogueState: state.dialogueState.dialogueState,
-    options: state.dialogueState.options,
+    defaultState: state.dialogueState.defaultState,
     submitFunction: state.dialogueState.submitFunction == null ? (dialogue) => {
     	return
     } : state.dialogueState.submitFunction,

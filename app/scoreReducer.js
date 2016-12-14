@@ -7,12 +7,12 @@ const initialScoreState = {
 fixScoreConstraints = (state) => {
 
   // We ensure goals and snitches are stored in chronological order
-
-  compareEventFunction = ((g1,g2) => {return g1.timeInMilliseconds - g2.timeInMilliseconds})
+/*
+  compareEventFunction = (g1,g2) => {return g1.timeInMilliseconds - g2.timeInMilliseconds}
   state.goals[0].sort(compareEventFunction)
   state.goals[1].sort(compareEventFunction)
   state.snitches[0].sort(compareEventFunction)
-  state.snitches[1].sort(compareEventFunction)
+  state.snitches[1].sort(compareEventFunction)*/
   return state
 }
 

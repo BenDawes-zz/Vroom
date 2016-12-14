@@ -13,7 +13,8 @@ const initialDialogueState = {
       )
   },
   cancelFunction: () => { return },
-  validateFunction: () => { return true }
+  validateFunction: () => { return true },
+  defaultState: {}
 }
 
 export default DialogueReducer = (state = initialDialogueState, action = {}) => {
@@ -33,6 +34,9 @@ export default DialogueReducer = (state = initialDialogueState, action = {}) => 
       }
       if(action.validateFunction !== null) {
         newState.validateFunction = action.validateFunction
+      }
+      if(action.defaultState !== null) {
+        newState.defaultState = action.defaultState
       }
       return newState
     }

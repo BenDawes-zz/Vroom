@@ -114,6 +114,11 @@ export default class Timer extends Component {
         running: false,
         paused: true
       } )
+      globalStore.dispatch({
+          type: 'SET_TIME',
+          timeInMilliseconds: 0,
+          startTime: this.state.startTime
+        })
       clearInterval(this.interval)
     }
   }

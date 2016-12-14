@@ -177,10 +177,12 @@ class ScoreControls extends Component {
     var cancelFunction;
     var contentFunction;
     var validateFunction = () => {return true};
-
+    var defaultState = {};
     switch(type) {
       case 'ADD_GOAL': {
         var eventTime = globalStore.getState().timerState.timeInMilliseconds;
+        var eventString = utils.stringify(eventTime);
+        console.log(eventTime)
         var goalIndex = globalStore.getState().scoreState.goals[team].length;
 
         // Immediately store it
@@ -217,8 +219,8 @@ class ScoreControls extends Component {
               (
                 <View style={styles.row}>
                 <Text style={styles.label}>Goal Time:</Text>
-                <TextInput style={styles.input} placeholder={utils.stringify(eventTime)}
-                  onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(eventTime)}/>
+                <TextInput style={styles.input} placeholder={eventString}
+                  onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={eventString}/>
                 </View>
               ),
               (
@@ -232,6 +234,7 @@ class ScoreControls extends Component {
           var title = (<Text>Adding Goal To {globalStore.getState().teamState.names[team]}</Text>)
           return defaultContentWrapper(title, rows, dialogue)
         }
+        defaultState = {timeString: eventString, scorerString: ''}
         break;
       }
       case 'REMOVE_GOAL': {
@@ -280,6 +283,7 @@ class ScoreControls extends Component {
       }
       case 'ADD_SNITCH': {
         var eventTime = globalStore.getState().timerState.timeInMilliseconds;
+        var eventString = utils.stringify(eventTime)
 
         submitFunction = (dialogue) => {
           // On submit, add the snitch
@@ -309,8 +313,8 @@ class ScoreControls extends Component {
             (
             <View style={styles.row}>
               <Text style={styles.label}>Catch Time:</Text>
-              <TextInput style={styles.input} placeholder={utils.stringify(eventTime)}
-               onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={utils.stringify(eventTime)}/>
+              <TextInput style={styles.input} placeholder={eventString}
+               onChangeText={(text) => dialogue.setState({timeString: text})} defaultValue={eventString}/>
             </View>
             ),
             (
@@ -321,6 +325,8 @@ class ScoreControls extends Component {
             )
           ]
           var title = (<Text>Adding Snitch Catch To {globalStore.getState().teamState.names[team]}</Text>)
+        defaultState = {timeString: '', catcherString: ''}
+
           return defaultContentWrapper(title, rows, dialogue)
         }
 
@@ -354,8 +360,7 @@ class ScoreControls extends Component {
     globalStore.dispatch({
       type: 'OPEN_DIALOGUE',
       dialogueState: type,
-      options: {
-      },
+      defaultState: defaultState,
       submitFunction: submitFunction,
       cancelFunction: cancelFunction,
       validateFunction: validateFunction,
