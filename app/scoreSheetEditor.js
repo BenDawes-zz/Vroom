@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableHighlight, TextInput} from 'react-nati
 import { connect } from 'react-redux'
 import globalStore from './globalStore'
 import TeamNames from './teamNames'
+import ConfirmationButton from './confirmationButton'
 import * as utils from './utils'
 
 class ScoreSheetEditor extends Component {
@@ -14,6 +15,8 @@ class ScoreSheetEditor extends Component {
     this.validate = this.validate.bind(this)
     this.updateGoalTime = this.updateGoalTime.bind(this)
     this.updateGoalScorer = this.updateGoalScorer.bind(this)
+    this.deleteGoal = this.deleteGoal.bind(this)
+    this.deleteSnitch = this.deleteSnitch.bind(this)
     this.state = {
       dialogue: props.dialogue, 
       team: props.team, 
@@ -106,6 +109,13 @@ class ScoreSheetEditor extends Component {
     }
   }
   
+  deleteGoal(index) {
+
+  }
+
+  deleteSnitch(index) {
+
+  }
 
   render() {
     var goalsContent = this.props.goals.map((goal,i) => {
@@ -124,6 +134,13 @@ class ScoreSheetEditor extends Component {
             onChangeText={(text) => this.updateGoalTime(i, text)} defaultValue={utils.stringify(eventTime)}/>
           <TextInput style={[styles.input, scorerValid ? {} : styles.invalid]} placeholder={scorerNumber}
             onChangeText={(text) => this.updateGoalScorer(i, text)} defaultValue={scorerNumber}/>
+          <ConfirmationButton
+            style={styles.deleteButton}
+            initialMessage="X"
+            confirmationMessage="Delete"
+            defaultWidth="40"
+            maxWidth="100"
+            submitFn={() => this.deleteGoal(i)}/>
         </View>
       )
     })
@@ -251,6 +268,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    fontSize: 16
+  },
+  deleteButton: {
+    width: 100,
+    position: 'absolute',
+    right: 0,
+    top: 0,
     fontSize: 16
   },
   header: {

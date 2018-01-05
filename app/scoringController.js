@@ -28,7 +28,6 @@ class Score extends Component {
 class ScoreControls extends Component {
   constructor(props) {
     super(props)
-    this.enterEditScoresheetMode = this.props.enterEditScoresheetModeFn.bind(this)
     this.raiseDialogue = this.props.raiseDialogue.bind(this)
   }
 
@@ -119,7 +118,6 @@ class ScoreControls extends Component {
  class ScoringController extends Component {
   constructor(props) {
     super(props)
-    this.enterEditScoresheetMode = this.enterEditScoresheetMode.bind(this)
     this.raiseDialogue = this.raiseDialogue.bind(this)
   }
 
@@ -325,7 +323,7 @@ class ScoreControls extends Component {
             )
           ]
           var title = (<Text>Adding Snitch Catch To {globalStore.getState().teamState.names[team]}</Text>)
-        defaultState = {timeString: '', catcherString: ''}
+          defaultState = {timeString: '', catcherString: ''}
 
           return defaultContentWrapper(title, rows, dialogue)
         }
@@ -366,10 +364,6 @@ class ScoreControls extends Component {
       validateFunction: validateFunction,
       contentFunction: contentFunction
     })  
-  }
-
-  enterEditScoresheetMode(team) {
-
   }
 
   render() {
